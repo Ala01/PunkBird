@@ -1,6 +1,10 @@
 console.log('[Ala01] Punk Bird');
 
+const globais = {};
+let telaAtiva = {};
 let frames = 0;
+let recorde = 0;
+
 const som_HIT = new Audio();
 som_HIT.src =  './efeitos/hit.wav';
 
@@ -120,11 +124,12 @@ function criaFlappyBird(){
     atualiza(){
       //Colisao
       if(fazColisao(flappyBird, globais.chao)){
+        globais.placar.pontoMaximo();
         som_HIT.play();
         console.log('Você perdeu!')
         console.log('Ponto: '+globais.placar.ponto)
         setTimeout(() => {
-          mudaParaTela(Telas.INICIO);
+          mudaParaTela(Telas.FIM);
         },150);
         return;
       }
@@ -215,10 +220,10 @@ function criaCanos() {
       //Colisao +-
       canos.pares.forEach(function(par) {
         par.x = par.x - 2;
+        globais.placar.pontoMaximo();
         if(canos.temColisaoComOFlappyBird(par)) {
           console.log('Você perdeu!')
-          console.log('Ponto: '+globais.placar.ponto)
-          mudaParaTela(Telas.INICIO);
+          mudaParaTela(Telas.FIM);
         }
         if(par.x + canos.largura <= 0) {
           canos.pares.shift();
@@ -247,6 +252,11 @@ function criaPlacar(){
       const passou100Frames = frames % 100 === 0;
       if(passou100Frames) {
         placar.ponto = placar.ponto + 1;
+      }
+    },
+    pontoMaximo(){
+      if(recorde < placar.ponto){
+        recorde = placar.ponto;
       }
     }
   };
@@ -288,9 +298,38 @@ const mensagerGetReady = {
   }
 }
 
+// [mensagerGameOver]
+const mensagerGameOver = {
+  sX: 134,
+  sY: 153,
+  w: 226,
+  h: 200,
+  x: (canvas.width / 2) - 226 / 2,
+  y: 50,
+  desenha(){
+    contexto.drawImage(
+      sprites,
+      mensagerGameOver.sX, mensagerGameOver.sY,
+      mensagerGameOver.w, mensagerGameOver.h,
+      mensagerGameOver.x, mensagerGameOver.y,
+      mensagerGameOver.w, mensagerGameOver.h
+    );
+    contexto.font = "bold 18px serif";
+    contexto.fillStyle = "#d7a84c";
+    contexto.fillText(
+      globais.placar.ponto,
+      mensagerGameOver.x + mensagerGameOver.w - 19 - (10 * globais.placar.ponto.toString().length), 
+      mensagerGameOver.y + mensagerGetReady.h - 63
+    );
+    contexto.fillText(
+      recorde,
+      mensagerGameOver.x + mensagerGameOver.w - 19 - (10 * recorde.toString().length),
+      mensagerGameOver.y + mensagerGetReady.h - 22
+    );
+  }
+}
+
 // [Telas]
-const globais = {};
-let telaAtiva = {};
 function mudaParaTela(novaTela){
   telaAtiva = novaTela;
   if(telaAtiva.inicializa){
@@ -336,6 +375,26 @@ const Telas = {
       globais.flappyBird.atualiza();
       globais.placar.atualiza();
     }
+  },
+  FIM: {
+    // inicializa(){
+    //   globais.flappyBird = criaFlappyBird();
+    //   globais.chao = criaChao();
+    //   globais.canos = criaCanos();
+    //   globais.placar = criaPlacar();
+    // },
+    desenha(){
+      planoDeFundo.desenha();
+      globais.chao.desenha();
+      globais.flappyBird.desenha();
+      mensagerGameOver.desenha();
+    },
+    click(){
+      mudaParaTela(Telas.INICIO)
+    },
+    atualiza(){
+      globais.chao.atualiza();
+    }
   }
 };
 
@@ -354,6 +413,6 @@ window.addEventListener('click', function(){
   }
 });
 
-//Roda
+// Roda
 mudaParaTela(Telas.INICIO);
 loop();
