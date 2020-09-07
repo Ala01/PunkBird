@@ -22,23 +22,35 @@ const planoDeFundo = {
   altura: 204,
   x: 0,
   y: canvas.height - 204,
-
+  frameAtual: 0,
+  movimentos: [
+    {spriteX: 390, spriteY: 0,},
+    {spriteX: 390, spriteY: 209,},
+    {spriteX: 390, spriteY: 417,}
+  ],
+  cores: [
+    '#70c5ce','#d13715','#04031b'
+  ],
+  atualizaFrameAtual(){
+    const passou7800Frames = frames % 100 === 0 && planoDeFundo.frameAtual > planoDeFundo.movimentos.length;
+    if(passou7800Frames){
+      planoDeFundo.frameAtual = planoDeFundo.frameAtual + 1
+    }
+  },
   desenha() {
-    contexto.fillStyle = '#70c5ce';
-    //contexto.fillStyle = '#ff4f64'; //BlackBird
+    contexto.fillStyle = planoDeFundo.cores[planoDeFundo.frameAtual];
     contexto.fillRect(0,0, canvas.width, canvas.height)
-
+    const {spriteX, spriteY} = planoDeFundo.movimentos[planoDeFundo.frameAtual];
     contexto.drawImage(
       sprites,
-      planoDeFundo.spriteX, planoDeFundo.spriteY,
+      spriteX, spriteY,
       planoDeFundo.largura, planoDeFundo.altura,
       planoDeFundo.x, planoDeFundo.y,
       planoDeFundo.largura, planoDeFundo.altura,
     );
-
     contexto.drawImage(
       sprites,
-      planoDeFundo.spriteX, planoDeFundo.spriteY,
+      spriteX, spriteY,
       planoDeFundo.largura, planoDeFundo.altura,
       (planoDeFundo.x + planoDeFundo.largura), planoDeFundo.y,
       planoDeFundo.largura, planoDeFundo.altura,
@@ -157,8 +169,14 @@ function criaCanos() {
       spriteX: 52,
       spriteY: 169,
     },
-    tamanhoEspaco: 5,
+    tamanhoEspaco: 6,
     espaco: globais.flappyBird.altura,
+    atualizaTamanhoEspaco(){
+      const passou7800Frames = frames % 100 === 0 && canos.tamanhoEspaco > 3;
+      if(passou7800Frames){
+        tamanhoEspaco = tamanhoEspaco - 1 
+      }
+    },
     desenha() {
       canos.pares.forEach(function(par) {
         const yRandom = par.y;
@@ -393,7 +411,6 @@ const Telas = {
       mudaParaTela(Telas.INICIO)
     },
     atualiza(){
-      globais.chao.atualiza();
     }
   }
 };
