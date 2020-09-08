@@ -75,7 +75,6 @@ function criaChao(){
         chao.x, chao.y,
         chao.largura, chao.altura,
       );
-  
       contexto.drawImage(
         sprites,
         chao.spriteX, chao.spriteY,
@@ -169,6 +168,7 @@ function criaCanos() {
       spriteX: 52,
       spriteY: 169,
     },
+    pares: [],
     tamanhoEspaco: 6,
     espaco: globais.flappyBird.altura,
     atualizaTamanhoEspaco(){
@@ -193,7 +193,7 @@ function criaCanos() {
         )
         // [Cano do Chão]
         const canoChaoX = par.x;
-        const canoChaoY = canos.altura + espacamentoEntreCanos + yRandom; 
+        const canoChaoY = canos.altura + espacamentoEntreCanos + yRandom;
         contexto.drawImage(
           sprites, 
           canos.chao.spriteX, canos.chao.spriteY,
@@ -226,13 +226,12 @@ function criaCanos() {
       return false;
     },
     //Fim Colisao
-    pares: [],
     atualiza() {
       const passou100Frames = frames % 100 === 0;
       if(passou100Frames) {
         canos.pares.push({
           x: canvas.width,
-          y: -150 * (Math.random() + 1),
+          y: -200 * (Math.random() + 1),
         });
       }
       //Colisao +-
@@ -283,8 +282,33 @@ function criaPlacar(){
 
 //[Colisao]
 function criaColisao(){
-  atualiza(
-  );
+  const colisao = {
+    atualiza(){
+    },
+    fazColisao(flappyBird, chao){
+      const flappyBirdY = flappyBird.y +flappyBird.altura;
+      const chaoY = chao.y;
+      if(flappyBirdY >= chaoY){
+        return true;
+      }
+      return false;
+    },
+    temColisaoComOFlappyBird(par) {
+      const cabecaDoFlappy = globais.flappyBird.y;
+      const peDoFlappy = globais.flappyBird.y + globais.flappyBird.altura;
+      if(globais.flappyBird.x >= par.x) {
+        if(cabecaDoFlappy <= par.canoCeu.y) {
+          return true;
+        }
+        if(peDoFlappy >= par.canoChao.y) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+  }
+  return colisao;
 }
 
 //Colisão FlappyBird Chão
@@ -395,12 +419,6 @@ const Telas = {
     }
   },
   FIM: {
-    // inicializa(){
-    //   globais.flappyBird = criaFlappyBird();
-    //   globais.chao = criaChao();
-    //   globais.canos = criaCanos();
-    //   globais.placar = criaPlacar();
-    // },
     desenha(){
       planoDeFundo.desenha();
       globais.chao.desenha();
