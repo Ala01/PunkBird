@@ -394,10 +394,10 @@ function criaMensagerGameOver(){
     mH: 44,
     mValor: 0,
     mMovimentos: [
-      {mSX: 0, mSY: 78},
+      {mSX: 48, mSY: 124,},
       {mSX: 48, mSY: 78,},
       {mSX: 0, mSY: 124,},
-      {mSX: 48, mSY: 124,}
+      {mSX: 0, mSY: 78}
     ],
     atualizaValor(){
       const alcancou78Pontos = (
