@@ -9,7 +9,7 @@ const som_HIT = new Audio();
 som_HIT.src =  './efeitos/hit.wav';
 
 const sprites = new Image();
-sprites.src = './sprites/spritesPunk2.png';
+sprites.src = './sprites/spritesPunk.png';
 
 const canvas = document.querySelector('canvas');
 const contexto = canvas.getContext('2d');
@@ -27,10 +27,11 @@ function criaPlanoDeFundo(){
     movimentos: [
       {spriteX: 390, spriteY: 0,},
       {spriteX: 390, spriteY: 209,},
-      {spriteX: 390, spriteY: 417,}
+      {spriteX: 390, spriteY: 417,},
+      {spriteX: 675, spriteY: 417,}
     ],
     cores: [
-      '#70c5ce','#d13715','#04031b'
+      '#70c5ce','#d13715','#04031b','#e584ff'
     ],
     atualizaPeriodo(){
       const alcancou78Pontos = (
@@ -151,13 +152,12 @@ function criaFlappyBird(){
         flappyBird.x, flappyBird.y,
         flappyBird.largura, flappyBird.altura,
       );
-    },  
+    },
     atualiza(){
       //Colisao
       if(globais.colisao.temColisaoChao(flappyBird, globais.chao) || globais.colisao.temColisaoCeu(flappyBird)){
         globais.placar.pontoMaximo();
         som_HIT.play();
-        console.log('Você perdeu!');
         setTimeout(() => {
           mudaParaTela(Telas.FIM);
         },150);
@@ -166,7 +166,7 @@ function criaFlappyBird(){
       //Fim Colisao
       flappyBird.velocidade = flappyBird.velocidade + flappyBird.gravidade;
       flappyBird.y = flappyBird.y + flappyBird.velocidade;
-    },  
+    },
     pula(){
       flappyBird.velocidade = - flappyBird.pulo;
     }
@@ -188,15 +188,47 @@ function criaCanos() {
       spriteY: 169,
     },
     pares: [],
+    movimentoChao: [
+      {spriteXChao: 0, spriteYChao: 169,},
+      {spriteXChao: 675, spriteYChao: 0,},
+      {spriteXChao: 778, spriteYChao: 0,},
+      {spriteXChao: 883, spriteYChao: 0,},
+    ],
+    movimentoCeu: [
+      {spriteXCeu: 52, spriteYCeu: 169,},
+      {spriteXCeu: 727, spriteYCeu: 0,},
+      {spriteXCeu: 830, spriteYCeu: 0,},
+      {spriteXCeu: 935, spriteYCeu: 0,},
+    ],
+    randomChao: 0,
+    randomCeu: 0,
     tamanhoEspaco: 6,
     espaco: globais.flappyBird.altura,
     atualizaTamanhoEspaco(){
       const alcancou78Pontos = (
         globais.placar.alcancou78Pontos()
-        && canos.tamanhoEspaco > 3
+        && canos.tamanhoEspaco > 3 
       );
         if(alcancou78Pontos){
           canos.tamanhoEspaco = canos.tamanhoEspaco - 1;
+      }
+    },
+    // atualizaRandom(){
+    //   const alcancou600frames = (frames % 600 === 0);
+    //     if(alcancou600frames){
+    //       canos.randomChao = Math.floor(Math.random() * canos.movimentoChao.length);
+    //       canos.randomCeu = Math.floor(Math.random() * canos.movimentoCeu.length);
+    //   }
+    // },
+    atualizaRandom(){
+      const alcancou78Pontos = (
+        globais.placar.alcancou78Pontos()
+        && canos.randomChao < canos.movimentoChao.length - 1
+        && canos.movimentoChao.length === canos.movimentoCeu.length
+      );
+      if(alcancou78Pontos){
+        canos.randomChao = canos.randomChao + 1;
+        canos.randomCeu = canos.randomCeu + 1;
       }
     },
     desenha() {
@@ -204,21 +236,23 @@ function criaCanos() {
         const yRandom = par.y;
         const espacamentoEntreCanos = canos.espaco * canos.tamanhoEspaco;
         const canoCeuX = par.x;
-        const canoCeuY = yRandom; 
+        const canoCeuY = yRandom;
         // [Cano do Céu]
+        const {spriteXCeu, spriteYCeu} = canos.movimentoCeu[canos.randomCeu];
         contexto.drawImage(
-          sprites, 
-          canos.ceu.spriteX, canos.ceu.spriteY,
+          sprites,
+          spriteXCeu, spriteYCeu,
           canos.largura, canos.altura,
           canoCeuX, canoCeuY,
           canos.largura, canos.altura,
         )
         // [Cano do Chão]
+        const {spriteXChao, spriteYChao} = canos.movimentoChao[canos.randomChao];
         const canoChaoX = par.x;
         const canoChaoY = canos.altura + espacamentoEntreCanos + yRandom;
         contexto.drawImage(
-          sprites, 
-          canos.chao.spriteX, canos.chao.spriteY,
+          sprites,
+          spriteXChao, spriteYChao,
           canos.largura, canos.altura,
           canoChaoX, canoChaoY,
           canos.largura, canos.altura,
@@ -245,7 +279,7 @@ function criaCanos() {
         par.x = par.x - 2;
         globais.placar.pontoMaximo();
         if(globais.colisao.temColisaoCanos(par)) {
-          console.log('Você perdeu!')
+          som_HIT.play();
           mudaParaTela(Telas.FIM);
         }
         if(par.x + canos.largura <= 0) {
@@ -278,6 +312,7 @@ function criaPlacar(){
         globais.chao.atualizaPeriodo();
         globais.canos.atualizaTamanhoEspaco();
         globais.mensagerGameOver.atualizaValor();
+        globais.canos.atualizaRandom();
       }
     },
     pontoMaximo(){
@@ -286,7 +321,7 @@ function criaPlacar(){
       }
     },
     alcancou78Pontos(){
-      return placar.ponto != 0 && placar.ponto % 78 === 0 ? true : false 
+      return placar.ponto != 0 && placar.ponto % 78 === 0 ? true : false
     }
   };
   return placar;
@@ -297,7 +332,7 @@ function criaPlacar(){
 //   const medalha = {
 //     msX: 0,
 //     mSY: 78,
-//     mw: 44, 
+//     mw: 44,
 //     mh: 44,
 //     mx: 0,
 //     my: 0,
@@ -390,7 +425,7 @@ function criaMensagerGameOver(){
     y: 50,
     mSX: 0,
     mSY: 78,
-    mW: 44, 
+    mW: 44,
     mH: 44,
     mValor: 0,
     mMovimentos: [
@@ -402,7 +437,7 @@ function criaMensagerGameOver(){
     atualizaValor(){
       const alcancou78Pontos = (
         globais.placar.alcancou78Pontos()
-        && mensagerGameOver.mValor < mensagerGameOver.movimentos.length - 1);
+        && mensagerGameOver.mValor < mensagerGameOver.mMovimentos.length - 1);
       if(alcancou78Pontos){
         mensagerGameOver.mValor = mensagerGameOver.mValor + 1
       }
@@ -419,17 +454,17 @@ function criaMensagerGameOver(){
       contexto.fillStyle = "#d7a84c";
       contexto.fillText(
         globais.placar.ponto,
-        mensagerGameOver.x + mensagerGameOver.w - 19 - (10 * globais.placar.ponto.toString().length), 
+        mensagerGameOver.x + mensagerGameOver.w - 19 - (10 * globais.placar.ponto.toString().length),
         mensagerGameOver.y + mensagerGetReady.h - 63
       );
       //Medalha
-  
+
       const {mSX, mSY} = mensagerGameOver.mMovimentos[mensagerGameOver.mValor];
       contexto.drawImage(
         sprites,
         mSX, mSY,
         mensagerGameOver.mW, mensagerGameOver.mH,
-        mensagerGameOver.x + 26, 
+        mensagerGameOver.x + 26,
         mensagerGameOver.y + 86,
         mensagerGameOver.mW, mensagerGameOver.mH
       );
